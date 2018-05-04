@@ -68,9 +68,7 @@
     <ClCompile Include="..\..\..\..\Downloads\Chrome\HD44780-master\HD44780-master\examples\stm32f10x_vldiscovery\hd44780.c" />
     <ClCompile Include="..\..\..\..\Downloads\Chrome\HD44780-master\HD44780-master\examples\stm32f10x_vldiscovery\hd44780_stm32f10x.c" />
     <ClCompile Include="LEDBlink.c" />
-    <ClCompile Include="PowerControl.c" />
     <ClCompile Include="system_stm32f10x.c" />
-    <ClInclude Include="PowerControl.h" />
     <ClInclude Include="hd44780.h" />
     <ClInclude Include="hd44780_stm32f10x.h" />
     <None Include="stm32.props" />

@@ -58,14 +58,16 @@ volatile uint8_t encoder_status = INIT;
 volatile uint8_t encoder_direction = FORWARD;
 
 /*скважность ШИМ*/ 
-int TIM_Pulse = 0;
-int lastPulse = 1;
+int TIM_Numeric = 0;
+int lastInt = 1;
+
+char TIM_String[12] = "\0";
+char lastChar[12] = "Low";
 
 int TIM_Period = TIM_PERIOD;
 
 int tick = 0;
 Mode currentMode = DUTY_CYCLE;
-
 
 int main(void)
 {
@@ -89,7 +91,7 @@ int main(void)
 	//LED	
 	GPIO_StructInit(&port);
 	port.GPIO_Mode = GPIO_Mode_AF_PP;
-	port.GPIO_Pin = GPIO_Pin_6;
+	port.GPIO_Pin = GPIO_Pin_3;
 	port.GPIO_Speed = GPIO_Speed_2MHz;
 	GPIO_Init(GPIOB, &port);
 	#pragma endregion
@@ -98,7 +100,7 @@ int main(void)
 	init_lcd();
 	enc_exti_init();
 	//encoder_init();
-	
+	PrintHeader(currentMode);
 
 	while (1)
 	{
@@ -119,12 +121,52 @@ int main(void)
 //							TIM4->CCR1 = TIM_Pulse;
 //						}
 		
-		TIM_Pulse = TIM3->CNT;
+//		TIM_Numeric = TIM3->CNT;
 		
-		if (lastPulse != TIM_Pulse)
+		
+		
+		switch (currentMode)
 		{
-			lastPulse = TIM_Pulse;
-			RefreshPercentageValue(TIM_Pulse, TIM_PERIOD);
+		case DUTY_CYCLE:
+			if (lastInt != TIMER->CCR1)
+			{
+				lastInt = TIMER->CCR1;
+				RefreshPercentageValue(TIMER->CCR1, TIM_PERIOD);
+			}
+			break;
+		case PERIOD:
+			if (lastInt != TIM_Period)
+			{
+				lastInt = TIM_Period;
+				RefreshNumericValue(TIM_Period);
+			}
+			break;
+		case POLARITY:
+			if (TIMER->CCER == 0)
+			{
+				RefreshStringValue("high");
+			}
+			else
+			{
+				RefreshStringValue("low");
+			}
+			break;
+		case PRESCALER:
+			if (lastInt != TIMER->PSC)
+			{
+				lastInt = TIMER->PSC;
+				RefreshNumericValue(TIMER->PSC);
+			}
+			break;
+		case PULSE:
+			if (lastInt != TIMER->CNT)
+			{
+				lastInt = TIMER->CNT;
+				RefreshNumericValue(TIMER->CNT);
+			}
+			break;
+		default:
+			break;
 		}
 	}
 }
@@ -165,7 +207,8 @@ void SelectNextMode()
 }
 
 // Обработчик прерывания для энкодера по спаду PB0
-void EXTI0_IRQHandler(void) {
+void EXTI0_IRQHandler(void)
+{
 	uint32_t nCount = 3;
  
 	// Убеждаемся, что флаг прерывания установлен
@@ -174,19 +217,19 @@ void EXTI0_IRQHandler(void) {
 		int bit0 = GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_0);
 		if (bit1 == 1) 
 		{
-			if (TIM_Pulse < TIM_PERIOD)
+			if (TIM_Numeric < TIM_PERIOD)
 			{
-				TIM_Pulse += 8;
+				TIM_Numeric += 8;
 			} 
-			TIM4->CCR1 = TIM_Pulse;
+			TIM4->CCR1 = TIM_Numeric;
 		}
 		else {
 			// Ручку крутят против часовой стрелки
-			if(TIM_Pulse > 0)
+			if(TIM_Numeric > 0)
 			{
-				TIM_Pulse -= 8;
+				TIM_Numeric -= 8;
 			}				
-			TIM4->CCR1 = TIM_Pulse;
+			TIM4->CCR1 = TIM_Numeric;
 		}
  
 		for (nCount *= 100000; nCount; nCount--) ;
@@ -197,24 +240,21 @@ void EXTI0_IRQHandler(void) {
 }
 
 // Обработчик прерывания для энкодера по спаду PB3
-void EXTI1_IRQHandler(void) {
+void EXTI1_IRQHandler(void) 
+{
 	uint32_t nCount = 3;
  
 	// Убеждаемся, что флаг прерывания установлен
-	if(EXTI_GetITStatus(EXTI_Line0) != RESET) {
+	if(EXTI_GetITStatus(EXTI_Line1) != RESET) {
 		int bit0 = GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_3);
 		if (bit0 == 1) 
 		{
-			if (TIM_Pulse < TIM_PERIOD)
-			{
-				TIM_Pulse += 8;
-			} 
-			TIM4->CCR1 = TIM_Pulse;
+			SelectNextMode();
 		}
 		for (nCount *= 100000; nCount; nCount--) ;
  
 		// Сбрасываем флаг прерывания
-		EXTI_ClearITPendingBit(EXTI_Line0);
+		EXTI_ClearITPendingBit(EXTI_Line1);
 	}
 }
 
@@ -307,14 +347,14 @@ void button_exti_init(void)
 	NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitStruct);
  
-	// PB3 подключен к EXTI_Line0
+	// PB3 подключен к EXTI_Line1
 	GPIO_EXTILineConfig(GPIO_PortSourceGPIOB, GPIO_PinSource3);
 	EXTI_InitStruct.EXTI_Line = EXTI_Line1;
 	// Разрешаем прерывание
 	EXTI_InitStruct.EXTI_LineCmd = ENABLE;
 	// По спаду
 	EXTI_InitStruct.EXTI_Mode = EXTI_Mode_Interrupt;
-	EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Falling;
+	EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Rising_Falling;
 	EXTI_Init(&EXTI_InitStruct);
 }
 

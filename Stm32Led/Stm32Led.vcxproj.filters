@@ -246,18 +246,12 @@
     <ClCompile Include="..\..\..\..\Downloads\Chrome\HD44780-master\HD44780-master\examples\stm32f10x_vldiscovery\hd44780_stm32f10x.c">
       <Filter>Source files</Filter>
     </ClCompile>
-    <ClCompile Include="PowerControl.c">
-      <Filter>Source files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="hd44780.h">
       <Filter>Header files</Filter>
     </ClInclude>
     <ClInclude Include="hd44780_stm32f10x.h">
-      <Filter>Header files</Filter>
-    </ClInclude>
-    <ClInclude Include="PowerControl.h">
       <Filter>Header files</Filter>
     </ClInclude>
   </ItemGroup>
