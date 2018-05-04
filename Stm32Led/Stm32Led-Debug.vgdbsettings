@@ -1,0 +1,247 @@
+<?xml version="1.0"?>
+<VisualGDBProjectSettings2 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <ConfigurationName>Debug</ConfigurationName>
+  <Project xsi:type="com.visualgdb.project.embedded">
+    <CustomSourceDirectories>
+      <Directories />
+      <PathStyle>MinGWUnixSlash</PathStyle>
+    </CustomSourceDirectories>
+    <MainSourceDirectory>$(ProjectDir)</MainSourceDirectory>
+    <EmbeddedProfileFile>stm32.xml</EmbeddedProfileFile>
+  </Project>
+  <Build xsi:type="com.visualgdb.build.msbuild">
+    <ToolchainID>
+      <Version>
+        <Revision>0</Revision>
+      </Version>
+    </ToolchainID>
+    <ProjectFile>Stm32Led.vcxproj</ProjectFile>
+    <RemoteBuildEnvironment>
+      <Records />
+      <EnvironmentSetupFiles />
+    </RemoteBuildEnvironment>
+    <ParallelJobCount>1</ParallelJobCount>
+    <SuppressDirectoryChangeMessages>true</SuppressDirectoryChangeMessages>
+  </Build>
+  <Debug xsi:type="com.visualgdb.debug.embedded">
+    <AdditionalStartupCommands />
+    <AdditionalGDBSettings>
+      <Features>
+        <DisableAutoDetection>false</DisableAutoDetection>
+        <UseFrameParameter>false</UseFrameParameter>
+        <SimpleValuesFlagSupported>false</SimpleValuesFlagSupported>
+        <ListLocalsSupported>false</ListLocalsSupported>
+        <ByteLevelMemoryCommandsAvailable>false</ByteLevelMemoryCommandsAvailable>
+        <ThreadInfoSupported>false</ThreadInfoSupported>
+        <PendingBreakpointsSupported>false</PendingBreakpointsSupported>
+        <SupportTargetCommand>false</SupportTargetCommand>
+        <ReliableBreakpointNotifications>false</ReliableBreakpointNotifications>
+      </Features>
+      <EnableSmartStepping>false</EnableSmartStepping>
+      <FilterSpuriousStoppedNotifications>false</FilterSpuriousStoppedNotifications>
+      <ForceSingleThreadedMode>false</ForceSingleThreadedMode>
+      <UseAppleExtensions>false</UseAppleExtensions>
+      <CanAcceptCommandsWhileRunning>false</CanAcceptCommandsWhileRunning>
+      <MakeLogFile>false</MakeLogFile>
+      <IgnoreModuleEventsWhileStepping>true</IgnoreModuleEventsWhileStepping>
+      <UseRelativePathsOnly>false</UseRelativePathsOnly>
+      <ExitAction>None</ExitAction>
+      <DisableDisassembly>false</DisableDisassembly>
+      <ExamineMemoryWithXCommand>false</ExamineMemoryWithXCommand>
+      <StepIntoNewInstanceEntry>main</StepIntoNewInstanceEntry>
+      <ExamineRegistersInRawFormat>true</ExamineRegistersInRawFormat>
+      <DisableSignals>false</DisableSignals>
+      <EnableAsyncExecutionMode>false</EnableAsyncExecutionMode>
+      <EnableNonStopMode>false</EnableNonStopMode>
+      <MaxBreakpointLimit>0</MaxBreakpointLimit>
+    </AdditionalGDBSettings>
+    <DebugMethod>
+      <ID>com.sysprogs.arm.openocd</ID>
+      <InterfaceID>stlink-v2</InterfaceID>
+      <InterfaceSerialNumber>7&amp;117ECE61&amp;0&amp;4</InterfaceSerialNumber>
+      <Configuration xsi:type="com.visualgdb.edp.openocd.settings">
+        <CommandLine>-f interface/stlink-v2.cfg -c "transport select hla_swd" -f target/stm32f1x.cfg -c init -c "reset init"</CommandLine>
+        <ExtraParameters>
+          <Frequency xsi:nil="true" />
+          <BoostedFrequency xsi:nil="true" />
+          <ConnectUnderReset>false</ConnectUnderReset>
+        </ExtraParameters>
+        <LoadProgressGUIThreshold>131072</LoadProgressGUIThreshold>
+        <ProgramMode>Enabled</ProgramMode>
+        <StartupCommands>
+          <string>set remotetimeout 60</string>
+          <string>target remote :$$SYS:GDB_PORT$$</string>
+          <string>mon halt</string>
+          <string>mon reset init</string>
+          <string>load</string>
+        </StartupCommands>
+        <PreferredGDBPort>0</PreferredGDBPort>
+        <PreferredTelnetPort>0</PreferredTelnetPort>
+      </Configuration>
+    </DebugMethod>
+    <AutoDetectRTOS>true</AutoDetectRTOS>
+    <SemihostingSupport>Auto</SemihostingSupport>
+    <StepIntoEntryPoint>false</StepIntoEntryPoint>
+    <ReloadFirmwareOnReset>false</ReloadFirmwareOnReset>
+    <ValidateEndOfStackAddress>true</ValidateEndOfStackAddress>
+    <StopAtEntryPoint>false</StopAtEntryPoint>
+    <CheckInterfaceDrivers>true</CheckInterfaceDrivers>
+    <DynamicAnalysisSettings>
+      <StackVerifier>
+        <VerifyStackBounds>false</VerifyStackBounds>
+        <AutoStepOutOfHook>true</AutoStepOutOfHook>
+        <StackLimitControlledByUser>false</StackLimitControlledByUser>
+        <ExplicitSizeLimit>0</ExplicitSizeLimit>
+        <ExplicitStackBase>0</ExplicitStackBase>
+        <Mode>Auto</Mode>
+      </StackVerifier>
+      <RealTimeWatch>
+        <SupportRTOSAnalysis>false</SupportRTOSAnalysis>
+        <SupportFunctionInstrumentation>false</SupportFunctionInstrumentation>
+        <MeasureOverhead>true</MeasureOverhead>
+      </RealTimeWatch>
+      <InstrumentedFunctions>
+        <IncludedFunctions>
+          <string>__do_global_dtors_aux</string>
+          <string>__libc_init_array</string>
+          <string>__malloc_lock</string>
+          <string>__malloc_unlock</string>
+          <string>__ssputs_r</string>
+          <string>_free_r</string>
+          <string>_init</string>
+          <string>_malloc_r</string>
+          <string>_malloc_usable_size_r</string>
+          <string>_printf_common</string>
+          <string>_printf_i</string>
+          <string>_realloc_r</string>
+          <string>_sbrk</string>
+          <string>_sbrk_r</string>
+          <string>_svfprintf_r</string>
+          <string>ADC1_2_IRQHandler</string>
+          <string>BusFault_Handler</string>
+          <string>CAN1_RX1_IRQHandler</string>
+          <string>CAN1_SCE_IRQHandler</string>
+          <string>DebugMon_Handler</string>
+          <string>delay_microseconds</string>
+          <string>DMA1_Channel1_IRQHandler</string>
+          <string>DMA1_Channel2_IRQHandler</string>
+          <string>DMA1_Channel3_IRQHandler</string>
+          <string>DMA1_Channel4_IRQHandler</string>
+          <string>DMA1_Channel5_IRQHandler</string>
+          <string>DMA1_Channel6_IRQHandler</string>
+          <string>DMA1_Channel7_IRQHandler</string>
+          <string>EXTI0_IRQHandler</string>
+          <string>EXTI1_IRQHandler</string>
+          <string>EXTI15_10_IRQHandler</string>
+          <string>EXTI2_IRQHandler</string>
+          <string>EXTI3_IRQHandler</string>
+          <string>EXTI4_IRQHandler</string>
+          <string>EXTI9_5_IRQHandler</string>
+          <string>FLASH_IRQHandler</string>
+          <string>frame_dummy</string>
+          <string>GPIO_Init</string>
+          <string>GPIO_ReadInputDataBit</string>
+          <string>GPIO_StructInit</string>
+          <string>GPIO_WriteBit</string>
+          <string>HardFault_Handler</string>
+          <string>hd44780_assert_failure_handler</string>
+          <string>hd44780_clear</string>
+          <string>hd44780_command</string>
+          <string>hd44780_config</string>
+          <string>hd44780_display_on</string>
+          <string>hd44780_init</string>
+          <string>hd44780_pulse_enable_pin</string>
+          <string>hd44780_send</string>
+          <string>hd44780_write_bits</string>
+          <string>hd44780_write_byte</string>
+          <string>hd44780_write_char</string>
+          <string>hd44780_write_string</string>
+          <string>I2C1_ER_IRQHandler</string>
+          <string>I2C1_EV_IRQHandler</string>
+          <string>I2C2_ER_IRQHandler</string>
+          <string>I2C2_EV_IRQHandler</string>
+          <string>init_lcd</string>
+          <string>main</string>
+          <string>memchr</string>
+          <string>memcpy</string>
+          <string>MemManage_Handler</string>
+          <string>memmove</string>
+          <string>NMI_Handler</string>
+          <string>NVIC_SetPriority</string>
+          <string>PendSV_Handler</string>
+          <string>PVD_IRQHandler</string>
+          <string>RCC_APB2PeriphClockCmd</string>
+          <string>RCC_IRQHandler</string>
+          <string>RTC_Alarm_IRQHandler</string>
+          <string>RTC_IRQHandler</string>
+          <string>SetSysClock</string>
+          <string>SetSysClockTo72</string>
+          <string>snprintf</string>
+          <string>SPI1_IRQHandler</string>
+          <string>SPI2_IRQHandler</string>
+          <string>stm32f10x_default_pin_configure</string>
+          <string>stm32f10x_default_pin_read</string>
+          <string>stm32f10x_default_pin_write</string>
+          <string>SVC_Handler</string>
+          <string>SystemInit</string>
+          <string>SysTick_Config</string>
+          <string>SysTick_Handler</string>
+          <string>TAMPER_IRQHandler</string>
+          <string>TIM1_BRK_IRQHandler</string>
+          <string>TIM1_CC_IRQHandler</string>
+          <string>TIM1_TRG_COM_IRQHandler</string>
+          <string>TIM1_UP_IRQHandler</string>
+          <string>TIM2_IRQHandler</string>
+          <string>TIM3_IRQHandler</string>
+          <string>TIM4_IRQHandler</string>
+          <string>uint32_time_diff</string>
+          <string>UsageFault_Handler</string>
+          <string>USART1_IRQHandler</string>
+          <string>USART2_IRQHandler</string>
+          <string>USART3_IRQHandler</string>
+          <string>USB_HP_CAN1_TX_IRQHandler</string>
+          <string>USB_LP_CAN1_RX0_IRQHandler</string>
+          <string>USBWakeUp_IRQHandler</string>
+          <string>WWDG_IRQHandler</string>
+        </IncludedFunctions>
+        <ExcludedFunctions />
+        <InstrumentSelectedFunctionsOnly>false</InstrumentSelectedFunctionsOnly>
+        <ExplicitEndOfFLASH>0</ExplicitEndOfFLASH>
+        <ExplicitEndOfRAM>0</ExplicitEndOfRAM>
+      </InstrumentedFunctions>
+    </DynamicAnalysisSettings>
+    <EndOfStackSymbol>_estack</EndOfStackSymbol>
+    <TimestampProviderTicksPerSecond>0</TimestampProviderTicksPerSecond>
+  </Debug>
+  <CustomBuild>
+    <PreSyncActions />
+    <PreBuildActions />
+    <PostBuildActions />
+    <PreCleanActions />
+    <PostCleanActions />
+  </CustomBuild>
+  <CustomDebug>
+    <PreDebugActions />
+    <PostDebugActions />
+    <DebugStopActions />
+    <BreakMode>Default</BreakMode>
+  </CustomDebug>
+  <CustomShortcuts>
+    <Shortcuts />
+    <ShowMessageAfterExecuting>true</ShowMessageAfterExecuting>
+  </CustomShortcuts>
+  <UserDefinedVariables />
+  <ImportedPropertySheets />
+  <CodeSense>
+    <Enabled>Unknown</Enabled>
+    <ExtraSettings>
+      <HideErrorsInSystemHeaders>true</HideErrorsInSystemHeaders>
+      <SupportLightweightReferenceAnalysis>false</SupportLightweightReferenceAnalysis>
+    </ExtraSettings>
+    <CodeAnalyzerSettings>
+      <Enabled>false</Enabled>
+    </CodeAnalyzerSettings>
+  </CodeSense>
+  <BuildContextDirectory>VisualGDB\VisualGDBCache</BuildContextDirectory>
+  <ProgramArgumentsSuggestions />
+</VisualGDBProjectSettings2>

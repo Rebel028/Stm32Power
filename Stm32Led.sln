@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2036
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Stm32Led", "Stm32Led\Stm32Led.vcxproj", "{E60D0D2D-100F-455D-B4BD-154E1D8808DE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|VisualGDB = Debug|VisualGDB
+		Release|VisualGDB = Release|VisualGDB
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E60D0D2D-100F-455D-B4BD-154E1D8808DE}.Debug|VisualGDB.ActiveCfg = Debug|VisualGDB
+		{E60D0D2D-100F-455D-B4BD-154E1D8808DE}.Debug|VisualGDB.Build.0 = Debug|VisualGDB
+		{E60D0D2D-100F-455D-B4BD-154E1D8808DE}.Release|VisualGDB.ActiveCfg = Release|VisualGDB
+		{E60D0D2D-100F-455D-B4BD-154E1D8808DE}.Release|VisualGDB.Build.0 = Release|VisualGDB
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {99AA8833-58F1-47E6-AAAD-D20FE2F90389}
+	EndGlobalSection
+EndGlobal
