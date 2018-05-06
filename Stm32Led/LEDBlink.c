@@ -13,16 +13,14 @@
 #include "stm32f10x_exti.h"
 #include <misc.h>
  
-#define FORWARD     0
-#define BACKWARD    1
- 
-#define NOREADY     0
-#define READY       1
-#define INIT        3
+#define BUTTON_PIN GPIO_Pin_4
+#define BUTTON_EXTI_LINE EXTI_Line4
 
 #define TIMER TIM4
 #define TIM_PERIOD 1000
 #define TIM_PRESCALER 1
+
+
 
 typedef enum {
 	DUTY_CYCLE,
@@ -49,13 +47,14 @@ void RefreshNumericValue(int currentValue);
 void RefreshStringValue(char string[32]);
 static inline char *stringFromMode(Mode f);
 void PrintHeader(Mode mode);
+void AdjustValue(uint16_t *currentParameter, int positive);
 
 HD44780 lcd;
 HD44780_STM32F10x_GPIO_Driver lcd_pindriver;
 
 volatile uint32_t systick_ms = 0;
-volatile uint8_t encoder_status = INIT;
-volatile uint8_t encoder_direction = FORWARD;
+//volatile uint8_t encoder_status = INIT;
+//volatile uint8_t encoder_direction = FORWARD;
 
 /*скважность ШИМ*/ 
 int TIM_Numeric = 0;
@@ -69,6 +68,14 @@ int TIM_Period = TIM_PERIOD;
 int tick = 0;
 Mode currentMode = DUTY_CYCLE;
 
+
+volatile uint16_t *dutyCyclePointer;
+volatile uint16_t *periodPointer;
+volatile uint16_t *ccerPointer; //userd for |= polarity
+volatile uint16_t *prescalerPointer;
+
+volatile uint16_t *currentParam;
+
 int main(void)
 {
 	SysTick_Config(SystemCoreClock / 1000);
@@ -81,17 +88,24 @@ int main(void)
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);
  
-	//buttons
+	//encoder
 	GPIO_StructInit(&port);
 	port.GPIO_Mode = GPIO_Mode_IPU;
 	port.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1;
 	port.GPIO_Speed = GPIO_Speed_2MHz;
 	GPIO_Init(GPIOB, &port);
 	
+	//buttons
+	GPIO_StructInit(&port);
+	port.GPIO_Mode = GPIO_Mode_IPU;
+	port.GPIO_Pin = BUTTON_PIN;
+	port.GPIO_Speed = GPIO_Speed_2MHz;
+	GPIO_Init(GPIOB, &port);
+	
 	//LED	
 	GPIO_StructInit(&port);
 	port.GPIO_Mode = GPIO_Mode_AF_PP;
-	port.GPIO_Pin = GPIO_Pin_3;
+	port.GPIO_Pin = GPIO_Pin_6;
 	port.GPIO_Speed = GPIO_Speed_2MHz;
 	GPIO_Init(GPIOB, &port);
 	#pragma endregion
@@ -101,44 +115,36 @@ int main(void)
 	enc_exti_init();
 	//encoder_init();
 	PrintHeader(currentMode);
-
+	
+	dutyCyclePointer = &TIMER->CCR1;
+	periodPointer = &TIMER->ARR;
+	ccerPointer = &TIMER->CCER;
+	prescalerPointer = &TIMER->PSC;
+	
+	currentParam = dutyCyclePointer;
 	while (1)
 	{
-//						if(GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_0) == 0) 
-//						{
-//							if (TIM_Pulse < PERIOD)
-//							{
-//								TIM_Pulse += 8;
-//							} 
-//							TIM4->CCR1 = TIM_Pulse;
-//						}
-//						
-//						if (GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_1) == 0) {
-//							if (TIM_Pulse > 0)
-//							{
-//								TIM_Pulse -= 8;
-//							}				
-//							TIM4->CCR1 = TIM_Pulse;
-//						}
-		
-//		TIM_Numeric = TIM3->CNT;
-		
-		
+		int bit0 = GPIO_ReadInputDataBit(GPIOB, BUTTON_PIN);
+		if (bit0 == 0) 
+		{
+			SelectNextMode();
+		}
+	
 		
 		switch (currentMode)
 		{
 		case DUTY_CYCLE:
-			if (lastInt != TIMER->CCR1)
+			if (lastInt != *dutyCyclePointer)
 			{
-				lastInt = TIMER->CCR1;
-				RefreshPercentageValue(TIMER->CCR1, TIM_PERIOD);
+				lastInt = *dutyCyclePointer;
+				RefreshPercentageValue(*dutyCyclePointer, *periodPointer);
 			}
 			break;
 		case PERIOD:
-			if (lastInt != TIM_Period)
+			if (lastInt != *periodPointer)
 			{
-				lastInt = TIM_Period;
-				RefreshNumericValue(TIM_Period);
+				lastInt = *periodPointer;
+				RefreshNumericValue(*periodPointer);
 			}
 			break;
 		case POLARITY:
@@ -159,10 +165,10 @@ int main(void)
 			}
 			break;
 		case PULSE:
-			if (lastInt != TIMER->CNT)
+			if (lastInt != *dutyCyclePointer)
 			{
-				lastInt = TIMER->CNT;
-				RefreshNumericValue(TIMER->CNT);
+				lastInt = *dutyCyclePointer;
+				RefreshNumericValue(*dutyCyclePointer);
 			}
 			break;
 		default:
@@ -180,12 +186,15 @@ void SelectNextMode()
 	switch (currentMode)
 	{
 	case DUTY_CYCLE:
-		RefreshPercentageValue(TIMER->CCR1, TIM_PERIOD);
+		currentParam = dutyCyclePointer;
+		//RefreshPercentageValue(TIMER->CCR1, TIM_PERIOD);
 		break;
 	case PERIOD:
-		RefreshNumericValue(TIM_Period);
+		currentParam = periodPointer;
+		//RefreshNumericValue(TIM_Period);
 		break;
 	case POLARITY:
+		currentParam = ccerPointer;
 		if (TIMER->CCER == 0)
 		{
 			RefreshStringValue("high");
@@ -196,10 +205,12 @@ void SelectNextMode()
 		}
 		break;
 	case PRESCALER:
-		RefreshNumericValue(TIMER->PSC);
+		currentParam = prescalerPointer;
+		//RefreshNumericValue(TIMER->PSC);
 		break;
 	case PULSE:
-		RefreshNumericValue(TIMER->CNT);
+		currentParam = dutyCyclePointer;
+		//RefreshNumericValue(TIMER->CCR1);
 		break;
 	default:
 		break;
@@ -215,21 +226,24 @@ void EXTI0_IRQHandler(void)
 	if(EXTI_GetITStatus(EXTI_Line0) != RESET) {
 		int bit1 = GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_1);
 		int bit0 = GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_0);
+		
 		if (bit1 == 1) 
 		{
-			if (TIM_Numeric < TIM_PERIOD)
-			{
-				TIM_Numeric += 8;
-			} 
-			TIM4->CCR1 = TIM_Numeric;
+//			if (TIM_Numeric < TIM_PERIOD)
+//			{
+//				TIM_Numeric += 8;
+//			} 
+//			TIM4->CCR1 = TIM_Numeric;
+			AdjustValue(currentParam,10);
 		}
 		else {
 			// Ручку крутят против часовой стрелки
-			if(TIM_Numeric > 0)
-			{
-				TIM_Numeric -= 8;
-			}				
-			TIM4->CCR1 = TIM_Numeric;
+//			if(TIM_Numeric > 0)
+//			{
+//				TIM_Numeric -= 8;
+//			}				
+//			TIM4->CCR1 = TIM_Numeric;
+			AdjustValue(currentParam, -10);
 		}
  
 		for (nCount *= 100000; nCount; nCount--) ;
@@ -239,24 +253,44 @@ void EXTI0_IRQHandler(void)
 	}
 }
 
-// Обработчик прерывания для энкодера по спаду PB3
-void EXTI1_IRQHandler(void) 
+void AdjustValue(uint16_t *currentParameter, int positive)
+{
+	if (positive > 0)
+	{
+		//TIM_Numeric += 10;
+		*currentParameter += 10;
+	}
+	else if (positive < 0)
+	{
+		//TIM_Numeric -= 10;
+		*currentParameter -= 10;
+	}
+	else
+	{
+		
+	}
+	TIM_Numeric = *currentParameter;
+}
+
+// Обработчик прерывания для энкодера по спаду PB4
+void EXTI4_IRQHandler(void) 
 {
 	uint32_t nCount = 3;
  
 	// Убеждаемся, что флаг прерывания установлен
-	if(EXTI_GetITStatus(EXTI_Line1) != RESET) {
-		int bit0 = GPIO_ReadInputDataBit(GPIOB, GPIO_Pin_3);
-		if (bit0 == 1) 
+	if(EXTI_GetITStatus(BUTTON_EXTI_LINE) != RESET) {
+		int bit0 = GPIO_ReadInputDataBit(GPIOB, BUTTON_PIN);
+		if (bit0 == 0) 
 		{
 			SelectNextMode();
 		}
 		for (nCount *= 100000; nCount; nCount--) ;
  
 		// Сбрасываем флаг прерывания
-		EXTI_ClearITPendingBit(EXTI_Line1);
+		EXTI_ClearITPendingBit(BUTTON_EXTI_LINE);
 	}
 }
+
 
 /*Настройка Энкодера*/
 void encoder_init(void)
@@ -333,29 +367,31 @@ void enc_exti_init(void)
 void button_exti_init(void)
 {
 	// Прерывания - это альтернативная функция порта, включаем
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
+	//RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
 	
 	EXTI_InitTypeDef EXTI_InitStruct;
 	NVIC_InitTypeDef NVIC_InitStruct;
 	
 	// Добавляем вектор прерывания
-	NVIC_InitStruct.NVIC_IRQChannel = EXTI1_IRQn;
+	NVIC_InitStruct.NVIC_IRQChannel = EXTI4_IRQn;
 	// Устанавливаем приоритет
-	NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = 0x08;      // 0x00 - 0x0F
-	NVIC_InitStruct.NVIC_IRQChannelSubPriority = 0x08;
+	NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = 0x09;      // 0x00 - 0x0F
+	NVIC_InitStruct.NVIC_IRQChannelSubPriority = 0x09;
 	// Разрешаем прерывание
 	NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitStruct);
  
-	// PB3 подключен к EXTI_Line1
-	GPIO_EXTILineConfig(GPIO_PortSourceGPIOB, GPIO_PinSource3);
-	EXTI_InitStruct.EXTI_Line = EXTI_Line1;
+	// PB4 подключен к EXTI_Line1
+	GPIO_EXTILineConfig(GPIO_PortSourceGPIOB, GPIO_PinSource4);
+
+	EXTI_InitStruct.EXTI_Line = BUTTON_EXTI_LINE;
 	// Разрешаем прерывание
 	EXTI_InitStruct.EXTI_LineCmd = ENABLE;
 	// По спаду
 	EXTI_InitStruct.EXTI_Mode = EXTI_Mode_Interrupt;
-	EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Rising_Falling;
+	EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Falling;
 	EXTI_Init(&EXTI_InitStruct);
+	
 }
 
 void SysTick_Handler(void)
@@ -449,6 +485,8 @@ void RefreshPercentageValue(int currentValue, int base)
 
 void RefreshNumericValue(int currentValue)
 {
+//	hd44780_move_cursor(&lcd, 0, 1);
+//	hd44780_write_string(&lcd, "                  ");
 	char valueString[32];
 	sprintf(valueString, "%d", currentValue);
 	hd44780_move_cursor(&lcd, 0, 1);
@@ -464,8 +502,27 @@ void RefreshStringValue(char string[32])
 /*Заголовок*/
 void PrintHeader(Mode mode)
 {
-	char str = *stringFromMode(mode);
-	hd44780_write_string(&lcd, &str);
+	//char str = *stringFromMode(mode);
+	switch (currentMode)
+	{
+	case DUTY_CYCLE:
+		hd44780_write_string(&lcd, "Duty cycle:");
+		break;
+	case PERIOD:
+		hd44780_write_string(&lcd, "Period:");
+		break;
+	case POLARITY:
+		hd44780_write_string(&lcd, "Polarity:");
+		break;
+	case PRESCALER:
+		hd44780_write_string(&lcd, "Prescaler:");
+		break;
+	case PULSE:
+		hd44780_write_string(&lcd, "Pulse:");
+		break;
+	default:
+		break;
+	}
 }
 
 static inline char *stringFromMode(Mode f)
@@ -477,7 +534,7 @@ static inline char *stringFromMode(Mode f)
 	"Prescaler:",
 	"Pulse:",
 	};
-
+ 
 	return strings[f];
 }
 
